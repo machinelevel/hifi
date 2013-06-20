@@ -87,10 +87,13 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseReleaseEvent(QMouseEvent* event);
     
+    virtual bool event(QEvent* event);
+    
     virtual void wheelEvent(QWheelEvent* event);
 };
 
 void GLCanvas::initializeGL() {
+    setAttribute(Qt::WA_AcceptTouchEvents);
     Application::getInstance()->initializeGL();
 }
 
@@ -122,6 +125,27 @@ void GLCanvas::mouseReleaseEvent(QMouseEvent* event) {
     Application::getInstance()->mouseReleaseEvent(event);
 }
 
+bool GLCanvas::event(QEvent* event) {
+    switch (event->type())
+    {
+        case QEvent::TouchBegin:
+            Application::getInstance()->touchBeginEvent(static_cast<QTouchEvent*>(event));
+            event->accept();
+            return true;
+            break;
+        case QEvent::TouchEnd:
+            Application::getInstance()->touchEndEvent(static_cast<QTouchEvent*>(event));
+            return true;
+            break;
+        case QEvent::TouchUpdate:
+            Application::getInstance()->touchUpdateEvent(static_cast<QTouchEvent*>(event));
+            break;
+        default:
+            break;
+    }
+    return QGLWidget::event(event);
+}
+
 void GLCanvas::wheelEvent(QWheelEvent* event) {
     Application::getInstance()->wheelEvent(event);
 }
@@ -145,6 +169,9 @@ Application::Application(int& argc, char** argv, timeval &startup_time) :
         _mouseX(0),
         _mouseY(0),
         _mousePressed(false),
+        _touchAvgX(0.0f),
+        _touchAvgY(0.0f),
+        _touchPressed(false),
         _mouseVoxelScale(1.0f / 1024.0f),
         _justEditedVoxel(false),
         _paintOn(false),
@@ -745,6 +772,41 @@ void Application::mouseReleaseEvent(QMouseEvent* event) {
     }
 }
 
+
+void Application::touchUpdateEvent(QTouchEvent* event) {
+    bool validTouch = false;
+    if (activeWindow() == _window) {
+        const QList<QTouchEvent::TouchPoint>& tPoints = event->touchPoints();
+        _touchAvgX = 0.0f;
+        _touchAvgY = 0.0f;
+        int numTouches = tPoints.count();
+        if (numTouches > 1) {
+            for (int i = 0; i < numTouches; ++i) {
+                _touchAvgX += tPoints[i].pos().x();
+                _touchAvgY += tPoints[i].pos().y();
+            }
+            _touchAvgX /= (float)(numTouches);
+            _touchAvgY /= (float)(numTouches);
+            validTouch = true;
+        }
+    }
+    if (!_touchPressed) {
+        _touchDragStartedAvgX = _touchAvgX;
+        _touchDragStartedAvgY = _touchAvgY;
+    }
+    _touchPressed = validTouch;
+}
+
+void Application::touchBeginEvent(QTouchEvent* event) {
+    touchUpdateEvent(event);
+}
+
+void Application::touchEndEvent(QTouchEvent* event) {
+    _touchDragStartedAvgX = _touchAvgX;
+    _touchDragStartedAvgY = _touchAvgY;
+    _touchPressed = false;
+}
+
 void Application::wheelEvent(QWheelEvent* event) {
     if (activeWindow() == _window) {
         if (checkedVoxelModeAction() == 0) {
@@ -1242,6 +1304,8 @@ void Application::initMenu() {
     _gyroLook->setChecked(false);
     (_mouseLook = optionsMenu->addAction("Mouse Look"))->setCheckable(true);
     _mouseLook->setChecked(true);
+    (_touchLook = optionsMenu->addAction("Touch Look"))->setCheckable(true);
+    _touchLook->setChecked(true);
     (_showHeadMouse = optionsMenu->addAction("Head Mouse"))->setCheckable(true);
     _showHeadMouse->setChecked(false);
     (_transmitterDrives = optionsMenu->addAction("Transmitter Drive"))->setCheckable(true);
@@ -1566,7 +1630,13 @@ void Application::update(float deltaTime) {
                                   _glWidget->width(),
                                   _glWidget->height());
     }
-   
+    
+    //  Update from Touch
+    if (_touchPressed && _touchLook->isChecked()) {
+        _myAvatar.updateFromTouch(_touchAvgX - _touchDragStartedAvgX,
+                                  _touchAvgY - _touchDragStartedAvgY);
+    }
+    
     //  Read serial port interface devices
     if (_serialHeadSensor.active) {
         _serialHeadSensor.readData(deltaTime);
