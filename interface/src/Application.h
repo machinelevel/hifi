@@ -48,6 +48,10 @@ class QWheelEvent;
 
 class Agent;
 class ProgramObject;
+class HifiLeapListener;
+namespace Leap {
+    class Controller;
+}
 
 class Application : public QApplication {
     Q_OBJECT
@@ -291,6 +295,11 @@ private:
     float _touchDragStartedAvgY;
     bool _isTouchPressed; //  true if multitouch has been pressed (clear when finished)
     
+    bool _leapIsInitialized;            // We've looked for the library and hooked it up if it's there.
+    bool _leapLibraryExists;            // The library is present, so we won't crash if we call it.
+    Leap::Controller* _leapController;
+    HifiLeapListener* _leapListener;
+
     VoxelDetail _mouseVoxelDragging;
     glm::vec3 _voxelThrust;
     bool _mousePressed; //  true if mouse has been pressed (clear when finished)
