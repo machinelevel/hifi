@@ -69,13 +69,13 @@ const std::vector<glm::vec3>& LeapManager::getFingerPositions() {
 std::string LeapManager::statusString() {
     std::stringstream leapString;
 #ifndef LEAP_STUBS
-    if (_leapIsInitialized) {
-        if (!_leapLibraryExists)
+    if (_isInitialized) {
+        if (!_libraryExists)
             leapString << "Leap library at /usr/lib/libLeap.dylib does not exist.";
         else if (!_controller || !_listener || !_controller->devices().count())
             leapString << "Leap controller is not attached.";
         else {
-            leapString << "Leap pointables: " << _leapListener->lastFrame.pointables().count();
+            leapString << "Leap pointables: " << _listener->lastFrame.pointables().count();
             if (_listener->lastFrame.pointables().count() > 0) {
                 Leap::Vector pos = _listener->lastFrame.pointables()[0].tipPosition();
                 leapString << " pos: " << pos.x << " " << pos.y << " " << pos.z;
