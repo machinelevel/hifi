@@ -16,13 +16,10 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <ifaddrs.h>
-#include <dlfcn.h>     // needed for RTLD_LAZY
 #endif
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/vector_angle.hpp>
-
-#include <Leap.h>
 
 #include <QActionGroup>
 #include <QBoxLayout>
@@ -60,6 +57,7 @@
 #include "Application.h"
 #include "InterfaceConfig.h"
 #include "LogDisplay.h"
+#include "LeapManager.h"
 #include "OculusManager.h"
 #include "Util.h"
 #include "renderer/ProgramObject.h"
@@ -178,10 +176,6 @@ Application::Application(int& argc, char** argv, timeval &startup_time) :
         _touchAvgX(0.0f),
         _touchAvgY(0.0f),
         _isTouchPressed(false),
-        _leapIsInitialized(false),
-        _leapLibraryExists(false),
-        _leapController(0),
-        _leapListener(0),
         _mousePressed(false),
         _mouseVoxelScale(1.0f / 1024.0f),
         _justEditedVoxel(false),
@@ -1502,34 +1496,6 @@ void Application::initDisplay() {
     glEnable(GL_DEPTH_TEST);
 }
 
-class HifiLeapListener  : public Leap::Listener {
-public:
-    HifiLeapListener() :
-            totalFramesRecieved(0)
-    {
-    }
-
-    int totalFramesRecieved;
-    Leap::Frame lastFrame;
-    std::vector<glm::vec3> fingerPositions;
-
-    virtual void onFrame(const Leap::Controller& controller) {
-#ifndef LEAP_STUBS
-        totalFramesRecieved++;
-        Leap::Frame frame = controller.frame();
-        int numFingers = frame.fingers().count();
-        fingerPositions.resize(numFingers);
-        for (int i = 0; i < numFingers; ++i) {
-            const Leap::Finger& thisFinger = frame.fingers()[i];
-            const Leap::Vector pos = thisFinger.tipPosition();
-            fingerPositions[i] = glm::vec3(pos.x, pos.y, pos.z);
-        }
-        lastFrame = frame;
-#endif
-    }
-    
-};
-
 void Application::init() {
     _voxels.init();
     
@@ -1712,21 +1678,8 @@ void Application::update(float deltaTime) {
     }
     
     // Leap finger-sensing device
-    if (!_leapIsInitialized) {
-#ifndef LEAP_STUBS
-        if (dlopen("/usr/lib/libLeap.dylib", RTLD_LAZY)) {
-            _leapLibraryExists = true;
-            _leapController = new Leap::Controller();
-            _leapListener = new HifiLeapListener();
-            _leapController->addListener(*_leapListener);
-        }
-#endif
-        _leapIsInitialized = true;
-    }
-    if (_leapListener && _leapController) {
-        _leapListener->onFrame(*_leapController);
-        _myAvatar.setLeapFingers(_leapListener->fingerPositions);
-    }
+    LeapManager::nextFrame();
+    _myAvatar.setLeapFingers(LeapManager::getFingerPositions());
     
      //  Read serial port interface devices
     if (_serialHeadSensor.isActive()) {
@@ -2372,24 +2325,7 @@ void Application::displayStats() {
     }
     
     drawtext(10, statsVerticalOffset + 330, 0.10f, 0, 1.0, 0, avatarMixerStats);
-    
-#ifndef LEAP_STUBS
-    if (_leapIsInitialized) {
-        std::stringstream leapString;
-        if (!_leapLibraryExists)
-            leapString << "Leap library at /usr/lib/libLeap.dylib does not exist.";
-        else if (!_leapController || !_leapListener || !_leapController->devices().count())
-            leapString << "Leap controller is not attached.";
-        else {
-            leapString << "Leap pointables: " << _leapListener->lastFrame.pointables().count();
-            if (_leapListener->lastFrame.pointables().count() > 0) {
-                Leap::Vector pos = _leapListener->lastFrame.pointables()[0].tipPosition();
-                leapString << " pos: " << pos.x << " " << pos.y << " " << pos.z;
-            }
-        }
-        drawtext(10, statsVerticalOffset + 450, 0.10f, 0, 1.0, 0, (char *)leapString.str().c_str());
-    }
-#endif
+    drawtext(10, statsVerticalOffset + 450, 0.10f, 0, 1.0, 0, (char *)LeapManager::statusString().c_str());
     
     if (_perfStatsOn) {
         // Get the PerfStats group details. We need to allocate and array of char* long enough to hold 1+groups
