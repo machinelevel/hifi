@@ -9,7 +9,6 @@
 #include "LeapManager.h"
 #include <Leap.h>
 #include <dlfcn.h>     // needed for RTLD_LAZY
-#include <string>
 #include <sstream>
 
 bool LeapManager::_isInitialized = false;

@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <string>
 
 class HifiLeapListener;
 namespace Leap {
