@@ -16,6 +16,7 @@
 #include "InterfaceConfig.h"
 #include "SerialInterface.h"
 #include <SharedUtil.h>
+#include <vector>
 
 
 class Avatar;
@@ -41,11 +42,11 @@ public:
     void render(bool lookingInMirror);
 
     void setBallColor      (glm::vec3 ballColor         ) { _ballColor          = ballColor;          }
-    void setLeapFingers    (const std::vector<glm::vec3>& fingerPositions);
+    void setLeapFingers    (const std::vector<glm::vec3>& fingerTips,
+                            const std::vector<glm::vec3>& fingerRoots);
 
     // getters
-    int              getNumLeapBalls           ()                const { return _numLeapBalls;}
-    const glm::vec3& getLeapBallPosition       (int which)       const { return _leapBall[which].position;}
+    const glm::vec3& getLeapBallPosition       (int which)       const { return _leapBalls[which].position;}
 
 private:
     // disallow copies of the Hand, copy of owning Avatar is disallowed too
@@ -58,12 +59,12 @@ private:
     glm::vec3   _ballColor;
     glm::vec3   _position;
     glm::quat   _orientation;
-    int         _numLeapBalls;
-    HandBall	_leapBall[ MAX_AVATAR_LEAP_BALLS ];
+    std::vector<HandBall>	_leapBalls;
     
     // private methods
     void renderHandSpheres();
     void calculateGeometry();
+    glm::vec3 leapPosToWorldPos(const glm::vec3& leapPos);
 };
 
 #endif

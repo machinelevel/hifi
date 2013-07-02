@@ -19,17 +19,22 @@ HifiLeapListener* LeapManager::_listener = 0;
 class HifiLeapListener  : public Leap::Listener {
 public:
     Leap::Frame lastFrame;
-    std::vector<glm::vec3> fingerPositions;
+    std::vector<glm::vec3> fingerTips;
+    std::vector<glm::vec3> fingerRoots;
     
     virtual void onFrame(const Leap::Controller& controller) {
 #ifndef LEAP_STUBS
         Leap::Frame frame = controller.frame();
         int numFingers = frame.fingers().count();
-        fingerPositions.resize(numFingers);
+        fingerTips.resize(numFingers);
+        fingerRoots.resize(numFingers);
         for (int i = 0; i < numFingers; ++i) {
             const Leap::Finger& thisFinger = frame.fingers()[i];
-            const Leap::Vector pos = thisFinger.tipPosition();
-            fingerPositions[i] = glm::vec3(pos.x, pos.y, pos.z);
+            const Leap::Vector pos = thisFinger.stabilizedTipPosition();
+            fingerTips[i] = glm::vec3(pos.x, pos.y, pos.z);
+
+            const Leap::Vector root = pos - thisFinger.direction() * thisFinger.length();
+            fingerRoots[i] = glm::vec3(root.x, root.y, root.z);
         }
         lastFrame = frame;
 #endif
@@ -44,22 +49,39 @@ void LeapManager::initialize() {
             _libraryExists = true;
             _controller = new Leap::Controller();
             _listener = new HifiLeapListener();
-            _controller->addListener(*_listener);
         }
 #endif
         _isInitialized = true;
     }
 }
 
+void LeapManager::terminate() {
+    if (_isInitialized) {
+        delete _listener;
+        delete _controller;
+        _listener = 0;
+        _controller = 0;
+        _isInitialized = false;
+    }
+}
+
 void LeapManager::nextFrame() {
-    initialize();
     if (_listener && _controller)
         _listener->onFrame(*_controller);
 }
 
-const std::vector<glm::vec3>& LeapManager::getFingerPositions() {
+const std::vector<glm::vec3>& LeapManager::getFingerTips() {
     if (_listener)
-        return _listener->fingerPositions;
+        return _listener->fingerTips;
+    else {
+        static std::vector<glm::vec3> empty;
+        return empty;
+    }
+}
+
+const std::vector<glm::vec3>& LeapManager::getFingerRoots() {
+    if (_listener)
+        return _listener->fingerRoots;
     else {
         static std::vector<glm::vec3> empty;
         return empty;

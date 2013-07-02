@@ -14,20 +14,21 @@
 
 #include <glm/glm.hpp>
 
-#define MAX_AVATAR_LEAP_BALLS 10
-
 class AvatarData;
 
 class HandData {
 public:
     HandData(AvatarData* owningAvatar);
     
-    const std::vector<glm::vec3>& getFingerPositions() const { return _fingerPositions; }
-    void setFingerPositions(const std::vector<glm::vec3>& fingerPositions) { _fingerPositions = fingerPositions; }
+    const std::vector<glm::vec3>& getFingerTips() const { return _fingerTips; }
+    const std::vector<glm::vec3>& getFingerRoots() const { return _fingerRoots; }
+    void setFingerTips(const std::vector<glm::vec3>& fingerTips) { _fingerTips = fingerTips; }
+    void setFingerRoots(const std::vector<glm::vec3>& fingerRoots) { _fingerRoots = fingerRoots; }
     
     friend class AvatarData;
 protected:
-    std::vector<glm::vec3> _fingerPositions;
+    std::vector<glm::vec3> _fingerTips;
+    std::vector<glm::vec3> _fingerRoots;
     AvatarData* _owningAvatarData;
 private:
     // privatize copy ctor and assignment operator so copies of this object cannot be made
