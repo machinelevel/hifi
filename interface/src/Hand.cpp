@@ -125,7 +125,7 @@ void Hand::renderHandSpheres() {
             glColor4f(_ballColor.r, _ballColor.g, _ballColor.b, 0.25);
             glm::vec3 tip = leapPosToWorldPos(_handPositons[i]);
             glm::vec3 root = leapPosToWorldPos(_handPositons[i] + (_handNormals[i] * 2.0f));
-            Avatar::renderJointConnectingCone(root, tip, 0.05, 0.05);
+            Avatar::renderJointConnectingCone(root, tip, 0.05, 0.03);
         }
     }
 
