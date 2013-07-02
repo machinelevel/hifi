@@ -109,14 +109,26 @@ void Hand::renderHandSpheres() {
         }
     }
     
+    // Draw the finger root cones
     if (_fingerTips.size() == _fingerRoots.size()) {
         for (size_t i = 0; i < _fingerTips.size(); ++i) {
             glColor4f(_ballColor.r, _ballColor.g, _ballColor.b, 0.5);
             glm::vec3 tip = leapPosToWorldPos(_fingerTips[i]);
             glm::vec3 root = leapPosToWorldPos(_fingerRoots[i]);
-            Avatar::renderJointConnectingCone(root, tip, 0.0025, 0.005);
+            Avatar::renderJointConnectingCone(root, tip, 0.001, 0.003);
         }
     }
+
+    // Draw the palms
+    if (_handPositons.size() == _handNormals.size()) {
+        for (size_t i = 0; i < _handPositons.size(); ++i) {
+            glColor4f(_ballColor.r, _ballColor.g, _ballColor.b, 0.25);
+            glm::vec3 tip = leapPosToWorldPos(_handPositons[i]);
+            glm::vec3 root = leapPosToWorldPos(_handPositons[i] + (_handNormals[i] * 2.0f));
+            Avatar::renderJointConnectingCone(root, tip, 0.05, 0.05);
+        }
+    }
+
     glPopMatrix();
 }
 
@@ -124,6 +136,12 @@ void Hand::setLeapFingers(const std::vector<glm::vec3>& fingerTips,
                           const std::vector<glm::vec3>& fingerRoots) {
     _fingerTips = fingerTips;
     _fingerRoots = fingerRoots;
+}
+
+void Hand::setLeapHands(const std::vector<glm::vec3>& handPositions,
+                          const std::vector<glm::vec3>& handNormals) {
+    _handPositons = handPositions;
+    _handNormals = handNormals;
 }
 
 

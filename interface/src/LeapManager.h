@@ -23,6 +23,8 @@ public:
     static void nextFrame();  // called once per frame to get new Leap data
     static const std::vector<glm::vec3>& getFingerTips();
     static const std::vector<glm::vec3>& getFingerRoots();
+    static const std::vector<glm::vec3>& getHandPositions();
+    static const std::vector<glm::vec3>& getHandNormals();
     static std::string statusString();
     static void initialize();
     static void terminate();

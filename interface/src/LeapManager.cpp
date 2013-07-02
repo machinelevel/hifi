@@ -21,6 +21,8 @@ public:
     Leap::Frame lastFrame;
     std::vector<glm::vec3> fingerTips;
     std::vector<glm::vec3> fingerRoots;
+    std::vector<glm::vec3> handPositions;
+    std::vector<glm::vec3> handNormals;
     
     virtual void onFrame(const Leap::Controller& controller) {
 #ifndef LEAP_STUBS
@@ -35,6 +37,18 @@ public:
 
             const Leap::Vector root = pos - thisFinger.direction() * thisFinger.length();
             fingerRoots[i] = glm::vec3(root.x, root.y, root.z);
+        }
+
+        int numHands = frame.hands().count();
+        handPositions.resize(numHands);
+        handNormals.resize(numHands);
+        for (int i = 0; i < numHands; ++i) {
+            const Leap::Hand& thisHand = frame.hands()[i];
+            const Leap::Vector pos = thisHand.palmPosition();
+            handPositions[i] = glm::vec3(pos.x, pos.y, pos.z);
+            
+            const Leap::Vector norm = thisHand.palmNormal();
+            handNormals[i] = glm::vec3(norm.x, norm.y, norm.z);
         }
         lastFrame = frame;
 #endif
@@ -82,6 +96,24 @@ const std::vector<glm::vec3>& LeapManager::getFingerTips() {
 const std::vector<glm::vec3>& LeapManager::getFingerRoots() {
     if (_listener)
         return _listener->fingerRoots;
+    else {
+        static std::vector<glm::vec3> empty;
+        return empty;
+    }
+}
+
+const std::vector<glm::vec3>& LeapManager::getHandPositions() {
+    if (_listener)
+        return _listener->handPositions;
+    else {
+        static std::vector<glm::vec3> empty;
+        return empty;
+    }
+}
+
+const std::vector<glm::vec3>& LeapManager::getHandNormals() {
+    if (_listener)
+        return _listener->handNormals;
     else {
         static std::vector<glm::vec3> empty;
         return empty;

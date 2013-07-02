@@ -44,6 +44,8 @@ public:
     void setBallColor      (glm::vec3 ballColor         ) { _ballColor          = ballColor;          }
     void setLeapFingers    (const std::vector<glm::vec3>& fingerTips,
                             const std::vector<glm::vec3>& fingerRoots);
+    void setLeapHands      (const std::vector<glm::vec3>& handPositions,
+                            const std::vector<glm::vec3>& handNormals);
 
     // getters
     const glm::vec3& getLeapBallPosition       (int which)       const { return _leapBalls[which].position;}
