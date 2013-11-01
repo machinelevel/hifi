@@ -130,8 +130,10 @@ void LeapManager::nextFrame(Avatar& avatar) {
                 palm.setActive(true);
                 const Leap::Vector pos = leapHand.palmPosition();
                 const Leap::Vector normal = leapHand.palmNormal();
+                const Leap::Vector forward = leapHand.direction();
                 palm.setRawPosition(glm::vec3(pos.x, pos.y, pos.z));
                 palm.setRawNormal(glm::vec3(normal.x, normal.y, normal.z));
+                palm.setRawForward(glm::vec3(forward.x, forward.y, forward.z));
             }
         }
 
@@ -198,8 +200,8 @@ void LeapManager::nextFrame(Avatar& avatar) {
             // There's no real Leap data and we need to fake it.
             for (size_t i = 0; i < hand.getNumPalms(); ++i) {
                 static const glm::vec3 fakeHandOffsets[] = {
-                    glm::vec3( -500.0f, 50.0f, 50.0f),
-                    glm::vec3(    0.0f, 50.0f, 50.0f)
+                    glm::vec3( -200.0f, 50.0f, 50.0f),
+                    glm::vec3(  200.0f, 50.0f, 50.0f)
                 };
                 static const glm::vec3 fakeHandFingerMirrors[] = {
                     glm::vec3( -1.0f, 1.0f, 1.0f),
@@ -219,6 +221,7 @@ void LeapManager::nextFrame(Avatar& avatar) {
                 
                 palm.setRawPosition(glm::vec3( 0.0f, 0.0f, 0.0f) + fakeHandOffsets[i]);
                 palm.setRawNormal(glm::vec3(0.0f, 1.0f, 0.0f));
+                palm.setRawForward(glm::vec3(0.0f, 0.0f, 1.0f));
 
                 for (size_t f = 0; f < palm.getNumFingers(); ++f) {
                     FingerData& finger = palm.getFingers()[f];

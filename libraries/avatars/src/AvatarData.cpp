@@ -25,7 +25,10 @@ static const float fingerVectorRadix = 4; // bits of precision when converting f
 AvatarData::AvatarData(Node* owningNode) :
     NodeData(owningNode),
     _uuid(),
-    _handPosition(0,0,0),
+    _leftHandPosition(0,0,0),
+    _rightHandPosition(0,0,0),
+    _leftHandRotation(0,0,0,1),
+    _rightHandRotation(0,0,0,1),
     _bodyYaw(-90.0),
     _bodyPitch(0.0),
     _bodyRoll(0.0),
@@ -93,8 +96,11 @@ int AvatarData::getBroadcastData(unsigned char* destinationBuffer) {
     destinationBuffer += sizeof(_headData->_leanForward);
 
     // Hand Position - is relative to body position
-    glm::vec3 handPositionRelative = _handPosition - _position;
-    memcpy(destinationBuffer, &handPositionRelative, sizeof(float) * 3);
+//    glm::vec3 leftHandPositionRelative = _leftHandPosition - _position;
+//    memcpy(destinationBuffer, &leftHandPositionRelative, sizeof(float) * 3);
+//    destinationBuffer += sizeof(float) * 3;
+    glm::vec3 rightHandPositionRelative = _rightHandPosition - _position;
+    memcpy(destinationBuffer, &rightHandPositionRelative, sizeof(float) * 3);
     destinationBuffer += sizeof(float) * 3;
 
     // Lookat Position
@@ -217,9 +223,13 @@ int AvatarData::parseData(unsigned char* sourceBuffer, int numBytes) {
     sourceBuffer += sizeof(_headData->_leanForward);
 
     // Hand Position - is relative to body position
-    glm::vec3 handPositionRelative;
-    memcpy(&handPositionRelative, sourceBuffer, sizeof(float) * 3);
-    _handPosition = _position + handPositionRelative;
+//    glm::vec3 leftHandPositionRelative;
+//    memcpy(&leftHandPositionRelative, sourceBuffer, sizeof(float) * 3);
+//    _leftHandPosition = _position + leftHandPositionRelative;
+//    sourceBuffer += sizeof(float) * 3;
+    glm::vec3 rightHandPositionRelative;
+    memcpy(&rightHandPositionRelative, sourceBuffer, sizeof(float) * 3);
+    _rightHandPosition = _position + rightHandPositionRelative;
     sourceBuffer += sizeof(float) * 3;
 
     // Lookat Position

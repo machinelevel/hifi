@@ -37,6 +37,7 @@ PalmData& HandData::addNewPalm()  {
 PalmData::PalmData(HandData* owningHandData) :
 _rawPosition(0, 0, 0),
 _rawNormal(0, 1, 0),
+_rawForward(0, 0, 1),
 _isActive(false),
 _leapID(LEAPID_INVALID),
 _numFramesWithoutData(0),
@@ -84,6 +85,7 @@ int HandData::encodeRemoteData(unsigned char* destinationBuffer) {
         if (palm.isActive()) {
             destinationBuffer += packFloatVec3ToSignedTwoByteFixed(destinationBuffer, palm.getRawPosition(), fingerVectorRadix);
             destinationBuffer += packFloatVec3ToSignedTwoByteFixed(destinationBuffer, palm.getRawNormal(), fingerVectorRadix);
+//            destinationBuffer += packFloatVec3ToSignedTwoByteFixed(destinationBuffer, palm.getRawForward(), fingerVectorRadix);
 
             unsigned int numFingers = 0;
             for (unsigned int fingerIndex = 0; fingerIndex < palm.getNumFingers(); ++fingerIndex) {
@@ -127,12 +129,15 @@ int HandData::decodeRemoteData(unsigned char* sourceBuffer) {
 
         glm::vec3 handPosition;
         glm::vec3 handNormal;
+//        glm::vec3 handForward;
         sourceBuffer += unpackFloatVec3FromSignedTwoByteFixed(sourceBuffer, handPosition, fingerVectorRadix);
         sourceBuffer += unpackFloatVec3FromSignedTwoByteFixed(sourceBuffer, handNormal, fingerVectorRadix);
+//        sourceBuffer += unpackFloatVec3FromSignedTwoByteFixed(sourceBuffer, handForward, fingerVectorRadix);
         unsigned int numFingers = *sourceBuffer++;
 
         palm.setRawPosition(handPosition);
         palm.setRawNormal(handNormal);
+//        palm.setRawForward(handForward);
         palm.setActive(true);
         
         for (unsigned int fingerIndex = 0; fingerIndex < numFingers; ++fingerIndex) {

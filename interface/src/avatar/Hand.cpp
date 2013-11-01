@@ -311,21 +311,24 @@ void Hand::renderLeapFingerTrails() {
 }
 
 
+#if 0
 void Hand::setLeapHands(const std::vector<glm::vec3>& handPositions,
-                          const std::vector<glm::vec3>& handNormals) {
+                          const std::vector<glm::vec3>& handNormals,
+                          const std::vector<glm::vec3>& handForwards) {
     for (size_t i = 0; i < getNumPalms(); ++i) {
         PalmData& palm = getPalms()[i];
         if (i < handPositions.size()) {
             palm.setActive(true);
             palm.setRawPosition(handPositions[i]);
             palm.setRawNormal(handNormals[i]);
+            palm.setRawForward(handForwards[i]);
         }
         else {
             palm.setActive(false);
         }
     }
 }
-
+#endif
 
 // call this soon after the geometry of the leap hands are set
 void Hand::updateRaveGloveEmitters() {

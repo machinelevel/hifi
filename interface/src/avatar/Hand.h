@@ -81,8 +81,8 @@ private:
     std::vector<HandBall> _leapFingerRootBalls;
     
     // private methods
-    void setLeapHands(const std::vector<glm::vec3>& handPositions,
-                      const std::vector<glm::vec3>& handNormals);
+//    void setLeapHands(const std::vector<glm::vec3>& handPositions,
+//                      const std::vector<glm::vec3>& handNormals);
 
     void activateNewRaveGloveMode();
 

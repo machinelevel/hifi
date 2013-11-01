@@ -132,10 +132,25 @@ public:
     PalmData(HandData* owningHandData);
     glm::vec3 getPosition()           const { return _owningHandData->leapPositionToWorldPosition(_rawPosition); }
     glm::vec3 getNormal()             const { return _owningHandData->leapDirectionToWorldDirection(_rawNormal); }
+    glm::vec3 getForward()            const { return _owningHandData->leapDirectionToWorldDirection(_rawForward); }
     const glm::vec3& getRawPosition() const { return _rawPosition; }
     const glm::vec3& getRawNormal()   const { return _rawNormal; }
+    const glm::vec3& getRawForward()  const { return _rawForward; }
     bool             isActive()       const { return _isActive; }
     int              getLeapID()      const { return _leapID; }
+    
+    glm::quat getRawRotation() const {
+        glm::vec3 up = getRawNormal();
+        glm::vec3 fwd = getRawNormal();
+        glm::vec3 left = glm::normalize(glm::cross(up, fwd));
+        return glm::quat_cast(glm::mat3(left, fwd, up));
+    }
+    glm::quat getRotation() const {
+        glm::vec3 up = getNormal();
+        glm::vec3 fwd = getNormal();
+        glm::vec3 left = glm::normalize(glm::cross(up, fwd));
+        return glm::quat_cast(glm::mat3(left, fwd, up));
+    }
 
     std::vector<FingerData>& getFingers()    { return _fingers; }
     size_t                   getNumFingers() { return _fingers.size(); }
@@ -144,6 +159,7 @@ public:
     void setLeapID(int id)                     { _leapID = id; }
     void setRawPosition(const glm::vec3& pos)  { _rawPosition = pos; }
     void setRawNormal(const glm::vec3& normal) { _rawNormal = normal; }
+    void setRawForward(const glm::vec3& forward) { _rawForward = forward; }
 
     void incrementFramesWithoutData()          { _numFramesWithoutData++; }
     void resetFramesWithoutData()              { _numFramesWithoutData = 0; }
@@ -153,6 +169,7 @@ private:
     std::vector<FingerData> _fingers;
     glm::vec3 _rawPosition;
     glm::vec3 _rawNormal;
+    glm::vec3 _rawForward;
     bool      _isActive;            // This has current valid data
     int       _leapID;              // the Leap's serial id for this tracked object
     int       _numFramesWithoutData; // after too many frames without data, this tracked object assumed lost.

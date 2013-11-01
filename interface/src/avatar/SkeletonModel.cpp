@@ -27,7 +27,10 @@ void SkeletonModel::simulate(float deltaTime) {
     
     Model::simulate(deltaTime);
     
-    setRightHandPosition(_owningAvatar->getHandPosition());
+   setLeftHandPosition(_owningAvatar->getLeftHandPosition());
+   setRightHandPosition(_owningAvatar->getRightHandPosition());
+//   setLeftHandRotation(_owningAvatar->getLeftHandRotation());
+//   setRightHandRotation(_owningAvatar->getRightHandRotation());
 }
 
 bool SkeletonModel::render(float alpha) {

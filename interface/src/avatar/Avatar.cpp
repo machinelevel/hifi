@@ -352,8 +352,9 @@ void Avatar::simulate(float deltaTime, Transmitter* transmitter) {
     }
     
     // if this is not my avatar, then hand position comes from transmitted data
-    _skeleton.joint[ AVATAR_JOINT_RIGHT_FINGERTIPS ].position = _handPosition;
-        
+    _skeleton.joint[ AVATAR_JOINT_LEFT_FINGERTIPS ].position = _leftHandPosition;
+    _skeleton.joint[ AVATAR_JOINT_RIGHT_FINGERTIPS ].position = _rightHandPosition;
+   
     //update the movement of the hand and process handshaking with other avatars...
     updateHandMovementAndTouching(deltaTime, enableHandMovement);
     _avatarTouch.simulate(deltaTime);
@@ -662,10 +663,12 @@ bool Avatar::updateLeapHandPositions() {
         }
         if (leftLeapHand) {
             _skeleton.joint[ AVATAR_JOINT_LEFT_FINGERTIPS ].position = leftLeapHand->getPosition();
+            _leftHandRotation = leftLeapHand->getRotation();
             returnValue = true;
         }
         if (rightLeapHand) {
             _skeleton.joint[ AVATAR_JOINT_RIGHT_FINGERTIPS ].position = rightLeapHand->getPosition();
+            _rightHandRotation = rightLeapHand->getRotation();
             returnValue = true;
         }
     }

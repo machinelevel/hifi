@@ -928,8 +928,9 @@ void MyAvatar::updateHandMovementAndTouching(float deltaTime, bool enableHandMov
     }
     
     //Set right hand position and state to be transmitted, and also tell AvatarTouch about it
-    setHandPosition(_skeleton.joint[ AVATAR_JOINT_RIGHT_FINGERTIPS ].position);
-    
+   setLeftHandPosition(_skeleton.joint[ AVATAR_JOINT_LEFT_FINGERTIPS ].position);
+   setRightHandPosition(_skeleton.joint[ AVATAR_JOINT_RIGHT_FINGERTIPS ].position);
+   
     if (_mousePressed) {
         _handState = HAND_STATE_GRASPING;
     } else {

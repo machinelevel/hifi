@@ -46,7 +46,8 @@ class AvatarData : public NodeData {
     Q_OBJECT
     
     Q_PROPERTY(glm::vec3 position READ getPosition WRITE setPosition)
-    Q_PROPERTY(glm::vec3 handPosition READ getHandPosition WRITE setHandPosition)
+//    Q_PROPERTY(glm::vec3 leftHandPosition READ getLeftHandPosition WRITE setLeftHandPosition)
+    Q_PROPERTY(glm::vec3 rightHandPosition READ getRightHandPosition WRITE setRightHandPosition)
     Q_PROPERTY(float bodyYaw READ getBodyYaw WRITE setBodyYaw)
     Q_PROPERTY(float bodyPitch READ getBodyPitch WRITE setBodyPitch)
     Q_PROPERTY(float bodyRoll READ getBodyRoll WRITE setBodyRoll)
@@ -58,8 +59,17 @@ public:
     const glm::vec3& getPosition() const { return _position; }
     void setPosition(const glm::vec3 position) { _position = position; }
     
-    const glm::vec3& getHandPosition() const { return _handPosition; }
-    void setHandPosition(const glm::vec3 handPosition) { _handPosition = handPosition; }
+    const glm::vec3& getLeftHandPosition() const { return _leftHandPosition; }
+    void setLeftHandPosition(const glm::vec3 handPosition) { _leftHandPosition = handPosition; }
+    
+    const glm::vec3& getRightHandPosition() const { return _rightHandPosition; }
+    void setRightHandPosition(const glm::vec3 handPosition) { _rightHandPosition = handPosition; }
+    
+    const glm::quat& getLeftHandRotation() const { return _leftHandRotation; }
+    void setLeftHandRotation(const glm::quat handRotation) { _leftHandRotation = handRotation; }
+    
+    const glm::quat& getRightHandRotation() const { return _rightHandRotation; }
+    void setRightHandRotation(const glm::quat handRotation) { _rightHandRotation = handRotation; }
     
     int getBroadcastData(unsigned char* destinationBuffer);
     int parseData(unsigned char* sourceBuffer, int numBytes);
@@ -98,7 +108,10 @@ protected:
     QUuid _uuid;
     
     glm::vec3 _position;
-    glm::vec3 _handPosition;
+    glm::vec3 _leftHandPosition;
+    glm::vec3 _rightHandPosition;
+    glm::quat _leftHandRotation;
+    glm::quat _rightHandRotation;
     
     //  Body rotation
     float _bodyYaw;
