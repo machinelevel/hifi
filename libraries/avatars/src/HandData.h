@@ -138,18 +138,24 @@ public:
     const glm::vec3& getRawForward()  const { return _rawForward; }
     bool             isActive()       const { return _isActive; }
     int              getLeapID()      const { return _leapID; }
-    
+
+   // Note: These transforms don't seem right, thought they're close,
+   //       but I'm not yet getting consistent data from the Leap for the Forward vector.
     glm::quat getRawRotation() const {
         glm::vec3 up = getRawNormal();
-        glm::vec3 fwd = getRawNormal();
+        glm::vec3 fwd = -getRawForward();
         glm::vec3 left = glm::normalize(glm::cross(up, fwd));
-        return glm::quat_cast(glm::mat3(left, fwd, up));
+        fwd = glm::normalize(glm::cross(left, up));
+        up = glm::normalize(up);
+        return glm::quat_cast(glm::mat3(left, up, fwd));
     }
     glm::quat getRotation() const {
-        glm::vec3 up = getNormal();
         glm::vec3 fwd = getNormal();
+        glm::vec3 up = -getForward();
         glm::vec3 left = glm::normalize(glm::cross(up, fwd));
-        return glm::quat_cast(glm::mat3(left, fwd, up));
+        fwd = glm::normalize(glm::cross(left, up));
+        up = glm::normalize(up);
+        return glm::quat_cast(glm::mat3(left, up, fwd));
     }
 
     std::vector<FingerData>& getFingers()    { return _fingers; }
