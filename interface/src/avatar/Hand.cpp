@@ -11,6 +11,7 @@
 #include "Application.h"
 #include "Avatar.h"
 #include "Hand.h"
+#include "Menu.h"
 #include "Util.h"
 #include "renderer/ProgramObject.h"
 
@@ -139,7 +140,7 @@ void Hand::render(bool lookingInMirror) {
     
     calculateGeometry();
 
-    if ( SHOW_LEAP_HAND ) {
+    if ( SHOW_LEAP_HAND && !Menu::getInstance()->isOptionChecked(MenuOption::HideLeapFingers)) {
         if (!isRaveGloveActive()) {
             renderLeapFingerTrails();
         }

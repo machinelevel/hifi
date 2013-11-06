@@ -184,6 +184,7 @@ namespace MenuOption {
     const QString GoToLocation = "Go To Location...";
     const QString DisableHideOutOfView = "Disable Hide Out of View Voxels";
     const QString GoToUser = "Go To User...";
+    const QString HideLeapFingers = "Hide Leap Fingers";
     const QString ImportVoxels = "Import Voxels";
     const QString ImportVoxelsClipboard = "Import Voxels to Clipboard";
     const QString IncreaseAvatarSize = "Increase Avatar Size";
