@@ -33,7 +33,9 @@ void JurisdictionListener::nodeAdded(Node* node) {
 }
 
 void JurisdictionListener::nodeKilled(Node* node) {
-    _jurisdictions.erase(_jurisdictions.find(node->getUUID()));
+    if (_jurisdictions.find(node->getUUID()) != _jurisdictions.end()) {
+        _jurisdictions.erase(_jurisdictions.find(node->getUUID()));
+    }
 }
 
 bool JurisdictionListener::queueJurisdictionRequest() {
@@ -44,11 +46,7 @@ bool JurisdictionListener::queueJurisdictionRequest() {
 
     NodeList* nodeList = NodeList::getInstance();
     for (NodeList::iterator node = nodeList->begin(); node != nodeList->end(); node++) {
-
-        // only send to the NodeTypes that are interested in our jurisdiction details
-        const int numNodeTypes = 1; 
-        const NODE_TYPE nodeTypes[numNodeTypes] = { NODE_TYPE_VOXEL_SERVER };
-        if (node->getActiveSocket() != NULL && memchr(nodeTypes, node->getType(), numNodeTypes)) {
+        if (nodeList->getNodeActiveSocketOrPing(&(*node)) && node->getType() == NODE_TYPE_VOXEL_SERVER) {
             sockaddr* nodeAddress = node->getActiveSocket();
             PacketSender::queuePacketForSending(*nodeAddress, bufferOut, sizeOut);
             nodeCount++;

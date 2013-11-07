@@ -102,7 +102,7 @@ void Head::init() {
         _eyePositionLocation = _irisProgram.uniformLocation("eyePosition");
         
         _irisTexture = Application::getInstance()->getTextureCache()->getTexture(QUrl::fromLocalFile(IRIS_TEXTURE_FILENAME),
-            true).staticCast<DilatableNetworkTexture>();
+            false, true).staticCast<DilatableNetworkTexture>();
     }
     _faceModel.init();
 }
@@ -413,6 +413,10 @@ glm::quat Head::getCameraOrientation () const {
 glm::quat Head::getEyeRotation(const glm::vec3& eyePosition) const {
     glm::quat orientation = getOrientation();
     return rotationBetween(orientation * IDENTITY_FRONT, _lookAtPosition + _saccade - eyePosition) * orientation;
+}
+
+glm::vec3 Head::getScalePivot() const {
+    return _faceModel.isActive() ? _faceModel.getTranslation() : _position;
 }
 
 void Head::renderHeadSphere() {

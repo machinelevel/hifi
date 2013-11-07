@@ -8,6 +8,7 @@
 
 #include <glm/gtx/transform.hpp>
 
+#include "Application.h"
 #include "Avatar.h"
 #include "SkeletonModel.h"
 
@@ -27,10 +28,15 @@ void SkeletonModel::simulate(float deltaTime) {
     
     Model::simulate(deltaTime);
     
-   setLeftHandPosition(_owningAvatar->getLeftHandPosition());
-   setRightHandPosition(_owningAvatar->getRightHandPosition());
-   setLeftHandRotation(_owningAvatar->getLeftHandRotation());
-   setRightHandRotation(_owningAvatar->getRightHandRotation());
+    if (_owningAvatar->getHandState() == HAND_STATE_NULL) {
+        const float HAND_RESTORATION_RATE = 0.25f;
+        restoreRightHandPosition(HAND_RESTORATION_RATE);
+    } else {
+        setLeftHandPosition(_owningAvatar->getLeftHandPosition());
+        setRightHandPosition(_owningAvatar->getRightHandPosition());
+        setLeftHandRotation(_owningAvatar->getLeftHandRotation());
+        setRightHandRotation(_owningAvatar->getRightHandRotation());
+    }
 }
 
 bool SkeletonModel::render(float alpha) {
@@ -50,7 +56,7 @@ bool SkeletonModel::render(float alpha) {
             
             glm::vec3 position;
             getJointPosition(i, position);
-            glTranslatef(position.x, position.y, position.z);
+            Application::getInstance()->loadTranslatedViewMatrix(position);
             
             glm::quat rotation;
             getJointRotation(i, rotation);
@@ -58,7 +64,7 @@ bool SkeletonModel::render(float alpha) {
             glRotatef(glm::angle(rotation), axis.x, axis.y, axis.z);
             
             glColor4f(skinColor.r, skinColor.g, skinColor.b, alpha);
-            const float BALL_RADIUS = 0.02f;
+            const float BALL_RADIUS = 0.005f;
             const int BALL_SUBDIVISIONS = 10;
             glutSolidSphere(BALL_RADIUS * _owningAvatar->getScale(), BALL_SUBDIVISIONS, BALL_SUBDIVISIONS);
             
@@ -72,9 +78,9 @@ bool SkeletonModel::render(float alpha) {
             
             glm::vec3 parentPosition;
             getJointPosition(parentIndex, parentPosition);
-            const float STICK_RADIUS = BALL_RADIUS * 0.5f;
+            const float STICK_RADIUS = BALL_RADIUS * 0.1f;
             Avatar::renderJointConnectingCone(parentPosition, position, STICK_RADIUS * _owningAvatar->getScale(),
-                STICK_RADIUS * _owningAvatar->getScale());
+                                              STICK_RADIUS * _owningAvatar->getScale());
         }
     }
     
@@ -88,9 +94,9 @@ void SkeletonModel::updateJointState(int index) {
     
     if (index == _geometry->getFBXGeometry().rootJointIndex) {
         JointState& state = _jointStates[index];
-        state.transform[3][0] = _translation.x;
-        state.transform[3][1] = _translation.y;
-        state.transform[3][2] = _translation.z;
+        state.transform[3][0] = 0.0f;
+        state.transform[3][1] = 0.0f;
+        state.transform[3][2] = 0.0f;
     }
 }
 

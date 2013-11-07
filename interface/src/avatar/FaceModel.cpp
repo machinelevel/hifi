@@ -21,11 +21,13 @@ void FaceModel::simulate(float deltaTime) {
     if (!isActive()) {
         return;
     }
-
     Avatar* owningAvatar = static_cast<Avatar*>(_owningHead->_owningAvatar);
     glm::vec3 neckPosition;
+    glm::vec3 modelTranslation;
     if (!owningAvatar->getSkeletonModel().getNeckPosition(neckPosition)) {
         neckPosition = owningAvatar->getSkeleton().joint[AVATAR_JOINT_NECK_BASE].position;
+        const glm::vec3 OLD_SKELETON_MODEL_TRANSLATION(0.0f, -60.0f, 40.0f);
+        modelTranslation = OLD_SKELETON_MODEL_TRANSLATION;
     }
     setTranslation(neckPosition);
     glm::quat neckRotation;
@@ -36,8 +38,7 @@ void FaceModel::simulate(float deltaTime) {
     setRotation(neckRotation);
     const float MODEL_SCALE = 0.0006f;
     setScale(glm::vec3(1.0f, 1.0f, 1.0f) * _owningHead->getScale() * MODEL_SCALE);
-    const glm::vec3 MODEL_TRANSLATION(0.0f, -60.0f, 40.0f); // temporary fudge factor
-    setOffset(MODEL_TRANSLATION - _geometry->getFBXGeometry().neckPivot);
+    setOffset(modelTranslation - _geometry->getFBXGeometry().neckPivot);
     
     setPupilDilation(_owningHead->getPupilDilation());
     setBlendshapeCoefficients(_owningHead->getBlendshapeCoefficients());
@@ -49,7 +50,7 @@ void FaceModel::maybeUpdateNeckRotation(const JointState& parentState, const FBX
     // get the rotation axes in joint space and use them to adjust the rotation
     glm::mat3 axes = glm::mat3_cast(_rotation);
     glm::mat3 inverse = glm::mat3(glm::inverse(parentState.transform *
-        joint.preTransform * glm::mat4_cast(joint.preRotation * joint.rotation)));
+        joint.preTransform * glm::mat4_cast(joint.preRotation)));
     state.rotation = glm::angleAxis(-_owningHead->getRoll(), glm::normalize(inverse * axes[2])) *
         glm::angleAxis(_owningHead->getYaw(), glm::normalize(inverse * axes[1])) *
         glm::angleAxis(-_owningHead->getPitch(), glm::normalize(inverse * axes[0])) * joint.rotation;
@@ -61,9 +62,9 @@ void FaceModel::maybeUpdateEyeRotation(const JointState& parentState, const FBXJ
         joint.preTransform * glm::mat4_cast(joint.preRotation * joint.rotation));
     glm::vec3 front = glm::vec3(inverse * glm::vec4(_owningHead->getOrientation() * IDENTITY_FRONT, 0.0f));
     glm::vec3 lookAt = glm::vec3(inverse * glm::vec4(_owningHead->getLookAtPosition() +
-        _owningHead->getSaccade(), 1.0f));
+        _owningHead->getSaccade() - _translation, 1.0f));
     glm::quat between = rotationBetween(front, lookAt);
-    const float MAX_ANGLE = 22.5f;
+    const float MAX_ANGLE = 30.0f;
     state.rotation = glm::angleAxis(glm::clamp(glm::angle(between), -MAX_ANGLE, MAX_ANGLE), glm::axis(between)) *
         joint.rotation;
 }

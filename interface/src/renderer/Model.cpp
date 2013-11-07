@@ -175,7 +175,7 @@ void Model::simulate(float deltaTime) {
             }
             sourceVertices = _blendedVertices.constData();
         }
-        glm::mat4 transform;
+        glm::mat4 transform = glm::translate(_translation);
         if (mesh.clusters.size() > 1) {
             _blendedVertices.resize(max(_blendedVertices.size(), vertexCount));
 
@@ -283,6 +283,9 @@ bool Model::render(float alpha) {
         ProgramObject* activeProgram = program;
         int tangentLocation = _normalMapTangentLocation;
         if (state.worldSpaceVertices.isEmpty()) {
+            glPushMatrix();
+            Application::getInstance()->loadTranslatedViewMatrix(_translation);
+            
             if (state.clusterMatrices.size() > 1) {
                 skinProgram->bind();
                 glUniformMatrix4fvARB(skinLocations->clusterMatrices, state.clusterMatrices.size(), false,
@@ -298,8 +301,7 @@ bool Model::render(float alpha) {
                 activeProgram = skinProgram;
                 tangentLocation = skinLocations->tangent;
          
-            } else {
-                glPushMatrix();
+            } else {    
                 glMultMatrixf((const GLfloat*)&state.clusterMatrices[0]);
                 program->bind();
             }
@@ -427,11 +429,9 @@ bool Model::render(float alpha) {
         if (state.worldSpaceVertices.isEmpty()) {
             if (state.clusterMatrices.size() > 1) {
                 skinProgram->disableAttributeArray(skinLocations->clusterIndices);
-                skinProgram->disableAttributeArray(skinLocations->clusterWeights);
-                           
-            } else {
-                glPopMatrix();
-            }
+                skinProgram->disableAttributeArray(skinLocations->clusterWeights);  
+            } 
+            glPopMatrix();
         }
         activeProgram->release();
     }
@@ -477,12 +477,20 @@ bool Model::setLeftHandPosition(const glm::vec3& position) {
     return isActive() && setJointPosition(_geometry->getFBXGeometry().leftHandJointIndex, position);
 }
 
+bool Model::restoreLeftHandPosition(float percent) {
+    return isActive() && restoreJointPosition(_geometry->getFBXGeometry().leftHandJointIndex, percent);
+}
+
 bool Model::setLeftHandRotation(const glm::quat& rotation) {
     return isActive() && setJointRotation(_geometry->getFBXGeometry().leftHandJointIndex, rotation);
 }
 
 bool Model::setRightHandPosition(const glm::vec3& position) {
     return isActive() && setJointPosition(_geometry->getFBXGeometry().rightHandJointIndex, position);
+}
+
+bool Model::restoreRightHandPosition(float percent) {
+    return isActive() && restoreJointPosition(_geometry->getFBXGeometry().rightHandJointIndex, percent);
 }
 
 bool Model::setRightHandRotation(const glm::quat& rotation) {
@@ -513,8 +521,7 @@ void Model::updateJointState(int index) {
     const FBXJoint& joint = geometry.joints.at(index);
     
     if (joint.parentIndex == -1) {
-        glm::mat4 baseTransform = glm::translate(_translation) * glm::mat4_cast(_rotation) *
-            glm::scale(_scale) * glm::translate(_offset);
+        glm::mat4 baseTransform = glm::mat4_cast(_rotation) * glm::scale(_scale) * glm::translate(_offset);
     
         glm::quat combinedRotation = joint.preRotation * state.rotation * joint.postRotation;    
         state.transform = baseTransform * geometry.offset * joint.preTransform *
@@ -555,7 +562,7 @@ bool Model::getJointPosition(int jointIndex, glm::vec3& position) const {
     if (jointIndex == -1 || _jointStates.isEmpty()) {
         return false;
     }
-    position = extractTranslation(_jointStates[jointIndex].transform);
+    position = _translation + extractTranslation(_jointStates[jointIndex].transform);
     return true;
 }
 
@@ -572,6 +579,7 @@ bool Model::setJointPosition(int jointIndex, const glm::vec3& position) {
     if (jointIndex == -1 || _jointStates.isEmpty()) {
         return false;
     }
+    glm::vec3 relativePosition = position - _translation;
     const FBXGeometry& geometry = _geometry->getFBXGeometry();
     const QVector<int>& freeLineage = geometry.joints.at(jointIndex).freeLineage;
     
@@ -583,7 +591,7 @@ bool Model::setJointPosition(int jointIndex, const glm::vec3& position) {
         glm::vec3 endPosition = extractTranslation(_jointStates[jointIndex].transform);
         for (int j = 1; j < freeLineage.size(); j++) {
             int index = freeLineage.at(j);
-            if (glm::distance(endPosition, position) < EPSILON) {
+            if (glm::distance(endPosition, relativePosition) < EPSILON) {
                 return true; // close enough to target position
             }
             const FBXJoint& joint = geometry.joints.at(index);
@@ -593,7 +601,7 @@ bool Model::setJointPosition(int jointIndex, const glm::vec3& position) {
             JointState& state = _jointStates[index];
             glm::vec3 jointPosition = extractTranslation(state.transform);
             glm::vec3 jointVector = endPosition - jointPosition;
-            glm::quat deltaRotation = rotationBetween(jointVector, position - jointPosition);
+            glm::quat deltaRotation = rotationBetween(jointVector, relativePosition - jointPosition);
             state.rotation = state.rotation * glm::inverse(state.combinedRotation) * deltaRotation * state.combinedRotation;
             endPosition = deltaRotation * jointVector + jointPosition;
         }
@@ -614,6 +622,19 @@ bool Model::setJointRotation(int jointIndex, const glm::quat& rotation) {
     JointState& state = _jointStates[jointIndex];
     state.rotation = state.rotation * glm::inverse(state.combinedRotation) * rotation *
         glm::inverse(_geometry->getFBXGeometry().joints.at(jointIndex).inverseBindRotation);
+    return true;
+}
+
+bool Model::restoreJointPosition(int jointIndex, float percent) {
+    if (jointIndex == -1 || _jointStates.isEmpty()) {
+        return false;
+    }
+    const FBXGeometry& geometry = _geometry->getFBXGeometry();
+    const QVector<int>& freeLineage = geometry.joints.at(jointIndex).freeLineage;
+    
+    foreach (int index, freeLineage) {
+        _jointStates[index].rotation = safeMix(_jointStates[index].rotation, geometry.joints.at(index).rotation, percent);
+    }
     return true;
 }
 

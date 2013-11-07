@@ -109,10 +109,10 @@ void VoxelTree::recurseNodeWithOperationDistanceSorted(VoxelNode* node, RecurseV
 
     if (operation(node, extraData)) {
         // determine the distance sorted order of our children
-        VoxelNode*  sortedChildren[NUMBER_OF_CHILDREN];
-        float       distancesToChildren[NUMBER_OF_CHILDREN];
-        int         indexOfChildren[NUMBER_OF_CHILDREN]; // not really needed
-        int         currentCount = 0;
+        VoxelNode* sortedChildren[NUMBER_OF_CHILDREN] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+        float distancesToChildren[NUMBER_OF_CHILDREN] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        int indexOfChildren[NUMBER_OF_CHILDREN] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        int currentCount = 0;
 
         for (int i = 0; i < NUMBER_OF_CHILDREN; i++) {
             VoxelNode* childNode = node->getChildAtIndex(i);
@@ -581,13 +581,24 @@ void VoxelTree::processRemoveVoxelBitstream(unsigned char * bitstream, int buffe
     int atByte = sizeof(short int) + numBytesForPacketHeader(bitstream);
     unsigned char* voxelCode = (unsigned char*)&bitstream[atByte];
     while (atByte < bufferSizeBytes) {
-        int codeLength = numberOfThreeBitSectionsInCode(voxelCode);
+        int maxSize = bufferSizeBytes - atByte;
+        int codeLength = numberOfThreeBitSectionsInCode(voxelCode, maxSize);
+        
+        if (codeLength == OVERFLOWED_OCTCODE_BUFFER) {
+            printf("WARNING! Got remove voxel bitstream that would overflow buffer in numberOfThreeBitSectionsInCode(), ");
+            printf("bailing processing of packet!\n");
+            break;
+        }
         int voxelDataSize = bytesRequiredForCodeLength(codeLength) + SIZE_OF_COLOR_DATA;
-
-        deleteVoxelCodeFromTree(voxelCode, COLLAPSE_EMPTY_TREE);
-
-        voxelCode+=voxelDataSize;
-        atByte+=voxelDataSize;
+        
+        if (atByte + voxelDataSize <= bufferSizeBytes) {
+            deleteVoxelCodeFromTree(voxelCode, COLLAPSE_EMPTY_TREE);
+            voxelCode += voxelDataSize;
+            atByte += voxelDataSize;
+        } else {
+            printf("WARNING! Got remove voxel bitstream that would overflow buffer, bailing processing!\n");
+            break;
+        }
     }
 }
 
@@ -1231,10 +1242,10 @@ int VoxelTree::encodeTreeBitstreamRecursion(VoxelNode* node, unsigned char* outp
     int inViewNotLeafCount = 0;
     int inViewWithColorCount = 0;
 
-    VoxelNode*  sortedChildren[NUMBER_OF_CHILDREN];
-    float       distancesToChildren[NUMBER_OF_CHILDREN];
-    int         indexOfChildren[NUMBER_OF_CHILDREN]; // not really needed
-    int         currentCount = 0;
+    VoxelNode* sortedChildren[NUMBER_OF_CHILDREN] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+    float distancesToChildren[NUMBER_OF_CHILDREN] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int indexOfChildren[NUMBER_OF_CHILDREN] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int currentCount = 0;
 
     for (int i = 0; i < NUMBER_OF_CHILDREN; i++) {
         VoxelNode* childNode = node->getChildAtIndex(i);
