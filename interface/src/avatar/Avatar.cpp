@@ -81,6 +81,7 @@ Avatar::Avatar(Node* owningNode) :
     _hand(this),
     _skeletonModel(this),
     _ballSpringsInitialized(false),
+    _leapHandsActive(false),
     _bodyYawDelta(0.0f),
     _mode(AVATAR_MODE_STANDING),
     _velocity(0.0f, 0.0f, 0.0f),
@@ -646,6 +647,7 @@ bool Avatar::updateLeapHandPositions() {
             returnValue = true;
         }
     }
+    _leapHandsActive = returnValue;
     return returnValue;
 }
 

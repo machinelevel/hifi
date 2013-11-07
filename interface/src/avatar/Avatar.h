@@ -155,6 +155,7 @@ public:
     const glm::vec3& getVelocity() const { return _velocity; }
     Head& getHead() { return _head; }
     Hand& getHand() { return _hand; }
+    bool getLeapHandsActive() const { return _leapHandsActive; }
     glm::quat getOrientation() const;
     glm::quat getWorldAlignedOrientation() const;
     AvatarVoxelSystem* getVoxels() { return &_voxels; }
@@ -205,6 +206,7 @@ protected:
     Skeleton _skeleton;
     SkeletonModel _skeletonModel;
     bool _ballSpringsInitialized;
+    bool _leapHandsActive;
     float _bodyYawDelta;
     AvatarBall _bodyBall[ NUM_AVATAR_BODY_BALLS ];
     AvatarMode _mode;

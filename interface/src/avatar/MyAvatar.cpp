@@ -936,6 +936,8 @@ void MyAvatar::updateHandMovementAndTouching(float deltaTime, bool enableHandMov
    
     if (_mousePressed) {
         _handState = HAND_STATE_GRASPING;
+    } else if (_leapHandsActive) {
+       _handState = HAND_STATE_LEAP;
     } else if (pointing) {
         _handState = HAND_STATE_POINTING;
     } else {

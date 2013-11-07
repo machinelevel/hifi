@@ -28,14 +28,17 @@ void SkeletonModel::simulate(float deltaTime) {
     
     Model::simulate(deltaTime);
     
-    if (_owningAvatar->getHandState() == HAND_STATE_NULL) {
-        const float HAND_RESTORATION_RATE = 0.25f;
-        restoreRightHandPosition(HAND_RESTORATION_RATE);
-    } else {
+    if (_owningAvatar->getLeapHandsActive()) {
+        // If we're using the Leap, we need position & rotation for both hands.
         setLeftHandPosition(_owningAvatar->getLeftHandPosition());
         setRightHandPosition(_owningAvatar->getRightHandPosition());
         setLeftHandRotation(_owningAvatar->getLeftHandRotation());
         setRightHandRotation(_owningAvatar->getRightHandRotation());
+    } else if (_owningAvatar->getHandState() == HAND_STATE_NULL) {
+        const float HAND_RESTORATION_RATE = 0.25f;
+        restoreRightHandPosition(HAND_RESTORATION_RATE);
+     } else {
+        setRightHandPosition(_owningAvatar->getRightHandPosition());
     }
 }
 
